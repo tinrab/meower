@@ -1,28 +1,5 @@
 version: "3.5"
 
 services:
-  writer:
-    container_name: "writer"
-    build: "."
-    command: "writer"
-    ports: ["3000:3000"]
-    depends_on:
-      - "redis"
-    environment:
-      - APP_PORT=3000
-      - APP_DB_PORT=9042
-  reader:
-    container_name: "reader"
-    build: "."
-    command: "reader"
-    ports: ["3001:3000"]
-    depends_on:
-      - "redis"
-  redis:
-    container_name: "redis"
-    image: "redis:4.0.9"
-    ports: ["6379"]
-  db:
-    container_name: "db"
-    build: "./db"
-    ports: ["10000", "9042", "9160", "7000", "7001"]
+  rabbitmq:
+    image: "rabbitmq:3.7.4"

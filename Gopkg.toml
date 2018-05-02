@@ -24,22 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
-
 [[constraint]]
   name = "github.com/gin-gonic/gin"
-  version = "1.2.0"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/gocql/gocql"
-
-[[constraint]]
-  name = "github.com/sirupsen/logrus"
-  version = "1.0.5"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/sony/sonyflake"
+  revision = "bd4f73af679e7d645f6d0277258fa360eda96f2d"
 
 [prune]
   go-tests = true
