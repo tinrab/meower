@@ -1,5 +1,19 @@
-version: "3.5"
+version: "3.6"
 
 services:
+  meow:
+    build: .
+    command: "meow-service"
+    depends_on:
+      - "postgres"
+    ports:
+      - "8000:3000"
+  postgres:
+    build: "./postgres"
+    restart: "always"
+    environment:
+      POSTGRES_USER: "meower"
+      POSTGRES_DB: "meower"
+      POSTGRES_PASSWORD: "123456"
   rabbitmq:
     image: "rabbitmq:3.7.4"

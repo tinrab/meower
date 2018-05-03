@@ -1,20 +1,30 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/tinrab/meower/meow-service/db"
 )
 
-func newRouter() (router *gin.Engine) {
-	gin.SetMode(gin.ReleaseMode)
-	router = gin.Default()
-	v1 := router.Group("/v1")
-	{
-		v1.POST("/meows", insertMeowEndpoint)
-	}
+func newRouter() (router *mux.Router) {
+	router = mux.NewRouter()
+	router.HandleFunc("/meows", createMeowHandler).
+		Methods("POST").
+		Queries("body", "{body}")
 	return
 }
 
 func main() {
+	repo, err := db.NewPostgres("postgres://meower:123456@postgres/meower?sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.SetRepository(repo)
+
 	router := newRouter()
-	router.Run(":3000")
+	if err := http.ListenAndServe(":3000", router); err != nil {
+		log.Fatal(err)
+	}
 }
