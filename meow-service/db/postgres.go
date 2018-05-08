@@ -20,6 +20,10 @@ func NewPostgres(connection string) (*PostgresRepository, error) {
 	}, nil
 }
 
+func (r *PostgresRepository) Close() error {
+	return r.db.Close()
+}
+
 func (r *PostgresRepository) InsertMeow(meow Meow) error {
 	_, err := r.db.Exec("INSERT INTO meows(id, body) VALUES($1, $2)", meow.ID, meow.Body)
 	return err

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/tinrab/meower/meow-service/db"
+	"github.com/tinrab/meower/mq"
 )
 
 func newRouter() (router *mux.Router) {
@@ -22,6 +23,14 @@ func main() {
 		log.Fatal(err)
 	}
 	db.SetRepository(repo)
+	defer repo.Close()
+
+	queue, err := mq.NewRabbitMessageQueue("amqp://guest:guest@rabbitmq:5672")
+	if err != nil {
+		log.Fatal(err)
+	}
+	mq.SetMessageQueue(queue)
+	defer queue.Close()
 
 	router := newRouter()
 	if err := http.ListenAndServe(":3000", router); err != nil {

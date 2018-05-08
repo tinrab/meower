@@ -1,6 +1,7 @@
 package db
 
 type Repository interface {
+	Close() error
 	InsertMeow(meow Meow) error
 }
 

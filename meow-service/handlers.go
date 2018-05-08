@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/tinrab/meower/mq"
+
 	"github.com/segmentio/ksuid"
 	"github.com/tinrab/meower/meow-service/db"
 	"github.com/tinrab/meower/util"
@@ -31,6 +33,8 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 		util.ResponseError(w, http.StatusInternalServerError, "Failed to insert meow")
 		return
 	}
+
+	mq.WriteMeowCreated(meow.ID, meow.Body)
 
 	// Return new meow
 	util.ResponseOk(w, CreateMeowResponse{ID: meow.ID})
