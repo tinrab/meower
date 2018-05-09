@@ -1,18 +1,33 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
+import VueNativeSock from 'vue-native-websocket';
 
 const API_URL = 'http://localhost:8000';
-const CREATE_MEOW_SUCCESS = 'CREATE_MEOW_SUCCESS';
+const WS_URL = 'ws://localhost:8001/ws';
+const CREATE_MEOW = 'CREATE_MEOW';
+
+const MESSAGE_MEOW_CREATED = 1;
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
     meows: [],
   },
   mutations: {
-    [CREATE_MEOW_SUCCESS](state, meow) {
+    SOCKET_ONOPEN(state, event) {},
+    SOCKET_ONCLOSE(state, event) {},
+    SOCKET_ONERROR(state, event) {
+      console.error(event);
+    },
+    SOCKET_ONMESSAGE(state, message) {
+      switch (message.kind) {
+        case MESSAGE_MEOW_CREATED:
+          this.commit(CREATE_MEOW, { id: message.id, body: message.body });
+      }
+    },
+    [CREATE_MEOW](state, meow) {
       state.meows = [meow, ...state.meows];
     },
   },
@@ -24,7 +39,10 @@ export default new Vuex.Store({
         },
       });
       meow.id = res.data.id;
-      commit(CREATE_MEOW_SUCCESS, meow);
     },
   },
 });
+
+Vue.use(VueNativeSock, WS_URL, { store, format: 'json' });
+
+export default store;

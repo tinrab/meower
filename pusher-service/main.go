@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/tinrab/meower/mq"
 )
@@ -16,14 +17,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	forever := make(chan struct{})
+	hub := newHub()
+
+	// Sub to Kafka
 	go func() {
 		for msg := range ch {
 			switch m := msg.(type) {
 			case *mq.MeowCreatedMessage:
-				log.Printf("Meow(%s) created: '%s'\n", m.ID, m.Body)
+				log.Printf("meow received: '%v'\n", m)
+				hub.broadcast(newMeowCreatedMessage(m.ID, m.Body), nil)
 			}
 		}
 	}()
-	<-forever
+
+	// Run WebSocket server
+	go hub.run()
+	http.HandleFunc("/ws", hub.handleWebSocket)
+	err = http.ListenAndServe(":3000", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
