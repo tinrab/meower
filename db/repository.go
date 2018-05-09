@@ -1,16 +1,18 @@
 package db
 
+import "github.com/tinrab/meower/schema"
+
 type Repository interface {
 	Close() error
-	InsertMeow(meow Meow) error
+	InsertMeow(meow schema.Meow) error
 }
 
-var impl Repository = &MemoryRepository{}
+var impl Repository
 
 func SetRepository(repository Repository) {
 	impl = repository
 }
 
-func InsertMeow(meow Meow) error {
+func InsertMeow(meow schema.Meow) error {
 	return impl.InsertMeow(meow)
 }

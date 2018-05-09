@@ -6,6 +6,8 @@ COPY Gopkg.lock Gopkg.toml ./
 COPY vendor vendor
 COPY util util
 COPY mq mq
+COPY db db
+COPY schema schema
 COPY meow-service meow-service
 COPY pusher-service pusher-service
 

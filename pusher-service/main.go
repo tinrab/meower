@@ -7,14 +7,11 @@ import (
 )
 
 func main() {
-	queue, err := mq.NewRabbitMessageQueue("amqp://guest:guest@rabbitmq:5672")
-	if err != nil {
-		log.Fatal(err)
-	}
+	queue := mq.NewKafka("kafka:9092")
 	mq.SetMessageQueue(queue)
 	defer queue.Close()
 
-	ch, err := mq.Read("meow.#")
+	ch, err := mq.ReadMeow()
 	if err != nil {
 		log.Fatal(err)
 	}

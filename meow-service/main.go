@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/tinrab/meower/meow-service/db"
 	"github.com/tinrab/meower/mq"
 )
 
@@ -18,22 +18,14 @@ func newRouter() (router *mux.Router) {
 }
 
 func main() {
-	repo, err := db.NewPostgres("postgres://meower:123456@postgres/meower?sslmode=disable")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.SetRepository(repo)
-	defer repo.Close()
-
-	queue, err := mq.NewRabbitMessageQueue("amqp://guest:guest@rabbitmq:5672")
-	if err != nil {
-		log.Fatal(err)
-	}
+	queue := mq.NewKafka("kafka:9092")
 	mq.SetMessageQueue(queue)
 	defer queue.Close()
 
+	// Run HTTP server
 	router := newRouter()
-	if err := http.ListenAndServe(":3000", router); err != nil {
+	allowAll := handlers.AllowedOrigins([]string{"*"})
+	if err := http.ListenAndServe(":3000", handlers.CORS(allowAll)(router)); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -4,10 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/tinrab/meower/mq"
-
 	"github.com/segmentio/ksuid"
-	"github.com/tinrab/meower/meow-service/db"
+	"github.com/tinrab/meower/mq"
+	"github.com/tinrab/meower/schema"
 	"github.com/tinrab/meower/util"
 )
 
@@ -24,17 +23,16 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create meow
-	meow := db.Meow{
+	meow := schema.Meow{
 		ID:   ksuid.New().String(),
 		Body: body,
 	}
-	if err := db.InsertMeow(meow); err != nil {
-		log.Println(err)
+	log.Println("Sending message...")
+	if err := mq.WriteMeowCreated(meow.ID, meow.Body); err != nil {
 		util.ResponseError(w, http.StatusInternalServerError, "Failed to insert meow")
 		return
 	}
-
-	mq.WriteMeowCreated(meow.ID, meow.Body)
+	log.Println("Message sent")
 
 	// Return new meow
 	util.ResponseOk(w, CreateMeowResponse{ID: meow.ID})

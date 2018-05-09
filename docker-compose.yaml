@@ -5,15 +5,14 @@ services:
     build: .
     command: "meow-service"
     depends_on:
-      - "postgres"
-      - "rabbitmq"
+      - "kafka"
     ports:
       - "8000:3000"
   pusher:
     build: .
     command: "pusher-service"
     depends_on:
-      - "rabbitmq"
+      - "kafka"
     ports:
       - "8001:3000"
   postgres:
@@ -23,6 +22,6 @@ services:
       POSTGRES_USER: "meower"
       POSTGRES_DB: "meower"
       POSTGRES_PASSWORD: "123456"
-  rabbitmq:
-    image: "rabbitmq:3.7.4"
+  kafka:
+    image: "spotify/kafka"
     restart: "always"

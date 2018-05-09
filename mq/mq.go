@@ -3,7 +3,7 @@ package mq
 type MessageQueue interface {
 	Close()
 	WriteMeowCreated(id string, body string) error
-	Read(routingKey string) (<-chan Message, error)
+	ReadMeow() (<-chan Message, error)
 }
 
 var impl MessageQueue
@@ -16,6 +16,6 @@ func WriteMeowCreated(id string, body string) error {
 	return impl.WriteMeowCreated(id, body)
 }
 
-func Read(routingKey string) (<-chan Message, error) {
-	return impl.Read(routingKey)
+func ReadMeow() (<-chan Message, error) {
+	return impl.ReadMeow()
 }

@@ -9,6 +9,6 @@ type MeowCreatedMessage struct {
 	Body string
 }
 
-func (m MeowCreatedMessage) Key() string {
+func (m *MeowCreatedMessage) Key() string {
 	return "meow.created"
 }

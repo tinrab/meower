@@ -20,6 +20,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
   revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
@@ -35,22 +41,28 @@
   revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
 
 [[projects]]
+  name = "github.com/matryer/try"
+  packages = ["."]
+  revision = "312d2599e12e89ca89b52a09597394f449235d80"
+  version = "v1"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/segmentio/kafka-go"
+  packages = ["."]
+  revision = "44a19ca9cf5925ba3c5153dd0d9e5b44e8dfd717"
+
+[[projects]]
   name = "github.com/segmentio/ksuid"
   packages = ["."]
   revision = "112f929a3020abfcd06b77c963ec919130796a35"
   version = "1.0.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/streadway/amqp"
-  packages = ["."]
-  revision = "8e4aba63da9fc5571e01c6a45dc809a58cbc5a68"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -61,6 +73,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "13d27f0b2466cbc76065070b30193619cec688bf036a64373b78123919d27a22"
+  inputs-digest = "93cb8123da4f545fb6d7cea1f318c338b3ea8f4296a5c40326659cf45e2b4b96"
   solver-name = "gps-cdcl"
   solver-version = 1

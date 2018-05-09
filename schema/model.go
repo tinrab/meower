@@ -1,4 +1,4 @@
-package db
+package schema
 
 type Meow struct {
 	ID   string `json:"id"`
