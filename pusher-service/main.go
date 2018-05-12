@@ -3,12 +3,23 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/tinrab/meower/mq"
+	"github.com/tinrab/retry"
 )
 
 func main() {
-	queue := mq.NewKafka("kafka:9092")
+	var queue mq.MessageQueue
+	err := retry.DoSleep(10, 2*time.Second, func(_ int) error {
+		kafka := mq.NewKafka([]string{"kafka:9092"})
+		err := kafka.UseConsumer("pusher")
+		queue = kafka
+		return err
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	mq.SetMessageQueue(queue)
 	defer queue.Close()
 

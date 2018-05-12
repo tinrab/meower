@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/segmentio/ksuid"
@@ -27,12 +26,10 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 		ID:   ksuid.New().String(),
 		Body: body,
 	}
-	log.Println("Sending message...")
 	if err := mq.WriteMeowCreated(meow.ID, meow.Body); err != nil {
 		util.ResponseError(w, http.StatusInternalServerError, "Failed to insert meow")
 		return
 	}
-	log.Println("Message sent")
 
 	// Return new meow
 	util.ResponseOk(w, CreateMeowResponse{ID: meow.ID})

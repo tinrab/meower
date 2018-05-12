@@ -26,16 +26,25 @@ func onMeowCreated(m mq.MeowCreatedMessage) {
 }
 
 func listMeowsHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
 	// Read parameters
-	skip, err := strconv.ParseUint(r.FormValue("skip"), 10, 64)
-	if err != nil {
-		util.ResponseError(w, http.StatusBadRequest, "Invalid skip parameter")
-		return
+	skip := uint64(0)
+	skipStr := r.FormValue("skip")
+	take := uint64(100)
+	takeStr := r.FormValue("take")
+	if len(skipStr) != 0 {
+		skip, err = strconv.ParseUint(skipStr, 10, 64)
+		if err != nil {
+			util.ResponseError(w, http.StatusBadRequest, "Invalid skip parameter")
+			return
+		}
 	}
-	take, err := strconv.ParseUint(r.FormValue("take"), 10, 64)
-	if err != nil {
-		util.ResponseError(w, http.StatusBadRequest, "Invalid take parameter")
-		return
+	if len(takeStr) != 0 {
+		take, err = strconv.ParseUint(takeStr, 10, 64)
+		if err != nil {
+			util.ResponseError(w, http.StatusBadRequest, "Invalid take parameter")
+			return
+		}
 	}
 
 	meows, err := db.ListMeows(skip, take)

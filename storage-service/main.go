@@ -5,25 +5,23 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tinrab/meower/storage-service/db"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/tinrab/meower/mq"
+	"github.com/tinrab/meower/storage-service/db"
 	"github.com/tinrab/retry"
 )
 
 func newRouter() (router *mux.Router) {
 	router = mux.NewRouter()
 	router.HandleFunc("/meows", listMeowsHandler).
-		Methods("GET").
-		Queries("skip", "{skip}", "take", "{take}")
+		Methods("GET")
 	return
 }
 
 func main() {
 	// Connect to PostgreSQL
-	err := retry.DoSleep(5, 2*time.Second, func(_ int) error {
+	err := retry.DoSleep(10, 2*time.Second, func(_ int) error {
 		repo, err := db.NewPostgres("postgres://meower:123456@postgres/meower?sslmode=disable")
 		if err != nil {
 			log.Println(err)
@@ -37,9 +35,19 @@ func main() {
 	}
 
 	// Subscribe to Kafka
-	queue := mq.NewKafka("kafka:9092")
+	var queue mq.MessageQueue
+	err = retry.DoSleep(10, 2*time.Second, func(_ int) error {
+		kafka := mq.NewKafka([]string{"kafka:9092"})
+		err := kafka.UseConsumer("storage")
+		queue = kafka
+		return err
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	mq.SetMessageQueue(queue)
 	defer queue.Close()
+
 	ch, err := mq.ReadMeow()
 	if err != nil {
 		log.Fatal(err)

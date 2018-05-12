@@ -2,93 +2,120 @@ package mq
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
-	"time"
+	"errors"
+	"log"
+	"os"
+	"os/signal"
 
-	"github.com/segmentio/kafka-go"
+	"github.com/Shopify/sarama"
+	cluster "github.com/bsm/sarama-cluster"
 )
 
 type KafkaMessageQueue struct {
-	address    string
-	meowWriter *kafka.Writer
-	meowReader *kafka.Reader
+	brokers  []string
+	producer sarama.SyncProducer
+	consumer *cluster.Consumer
 }
 
-func NewKafka(address string) *KafkaMessageQueue {
+func NewKafka(brokers []string) *KafkaMessageQueue {
 	return &KafkaMessageQueue{
-		address: address,
+		brokers: brokers,
 	}
+}
+
+func (mq *KafkaMessageQueue) UseProducer() error {
+	cfg := sarama.NewConfig()
+	// Wait for all in-sync replicas to ack the message
+	cfg.Producer.RequiredAcks = sarama.WaitForAll
+	// Retry up to 10 times to produce the message
+	cfg.Producer.Retry.Max = 10
+	cfg.Producer.Return.Successes = true
+	cfg.Consumer.Return.Errors = true
+
+	var err error
+	mq.producer, err = sarama.NewSyncProducer(mq.brokers, cfg)
+
+	return err
+}
+
+func (mq *KafkaMessageQueue) UseConsumer(groupID string) error {
+	cfg := cluster.NewConfig()
+	cfg.Consumer.Return.Errors = true
+
+	var err error
+	mq.consumer, err = cluster.NewConsumer(mq.brokers, groupID, []string{"meow"}, cfg)
+
+	return err
 }
 
 func (mq *KafkaMessageQueue) Close() {
-	if mq.meowWriter != nil {
-		mq.meowWriter.Close()
+	if mq.producer != nil {
+		mq.producer.Close()
 	}
-	if mq.meowReader != nil {
-		mq.meowReader.Close()
+	if mq.consumer != nil {
+		mq.consumer.Close()
 	}
 }
 
 func (mq *KafkaMessageQueue) WriteMeowCreated(id string, body string) error {
-	return mq.writeMeow(&MeowCreatedMessage{
+	if mq.producer == nil {
+		return errors.New("Producer not connected")
+	}
+	m := &MeowCreatedMessage{
 		ID:   id,
 		Body: body,
-	})
-}
-
-func (mq *KafkaMessageQueue) writeMeow(m Message) error {
-	if mq.meowWriter == nil {
-		mq.meowWriter = kafka.NewWriter(kafka.WriterConfig{
-			Brokers:      []string{mq.address},
-			Topic:        "meow",
-			Balancer:     &kafka.LeastBytes{},
-			BatchSize:    0,
-			BatchTimeout: 0,
-		})
 	}
-
 	data, err := mq.writeMessage(m)
 	if err != nil {
 		return err
 	}
-
-	return mq.meowWriter.WriteMessages(context.Background(), kafka.Message{
-		Key:   []byte(m.Key()),
-		Value: data,
+	_, _, err = mq.producer.SendMessage(&sarama.ProducerMessage{
+		Topic: "meow",
+		// Set key to ensure correct delivery order
+		Key:   sarama.StringEncoder(m.Key()),
+		Value: sarama.ByteEncoder(data),
 	})
+	return err
 }
 
 func (mq *KafkaMessageQueue) ReadMeow() (<-chan Message, error) {
-	if mq.meowReader == nil {
-		mq.meowReader = kafka.NewReader(kafka.ReaderConfig{
-			Brokers:        []string{mq.address},
-			Topic:          "meow",
-			MinBytes:       64,
-			MaxBytes:       1e3,
-			CommitInterval: time.Second,
-		})
+	if mq.consumer == nil {
+		return nil, errors.New("Consumer not connected")
 	}
 
+	go func() {
+		for err := range mq.consumer.Errors() {
+			log.Println(err)
+		}
+	}()
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt)
 	recv := make(chan Message)
 	go func() {
 		meowCreated := &MeowCreatedMessage{}
-		ctx := context.Background()
 		for {
-			km, err := mq.meowReader.ReadMessage(ctx)
-			if err != nil {
-				break
-			}
-			switch string(km.Key) {
-			case meowCreated.Key():
-				err = mq.readMessage(km.Value, meowCreated)
-				if err == nil {
-					recv <- meowCreated
+			select {
+			case msg, ok := <-mq.consumer.Messages():
+				log.Println(msg)
+
+				if ok {
+					switch string(msg.Key) {
+					case meowCreated.Key():
+						// Decode message
+						mq.readMessage(msg.Value, meowCreated)
+						recv <- meowCreated
+						// Mark as processed
+						mq.consumer.MarkOffset(msg, "")
+					}
 				}
+			case <-signals:
+				return
 			}
 		}
-		close(recv)
 	}()
+
 	return (<-chan Message)(recv), nil
 }
 
