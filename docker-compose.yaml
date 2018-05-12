@@ -15,6 +15,14 @@ services:
       - "kafka"
     ports:
       - "8001:3000"
+  storage:
+    build: .
+    command: "storage-service"
+    depends_on:
+      - "kafka"
+      - "postgres"
+    ports:
+      - "8002:3000"
   postgres:
     build: "./postgres"
     restart: "always"

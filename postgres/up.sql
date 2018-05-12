@@ -1,4 +1,4 @@
 CREATE TABLE meows (
-  id CHAR(32) PRIMARY KEY,
+  id VARCHAR(32) PRIMARY KEY,
   body TEXT NOT NULL
 );
