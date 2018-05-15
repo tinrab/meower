@@ -9,10 +9,6 @@ import (
 	"github.com/tinrab/meower/schema"
 )
 
-type MeowDocument struct {
-	Body string `json:"body"`
-}
-
 type ElasticRepository struct {
 	client *elastic.Client
 }
@@ -47,7 +43,9 @@ func (r *ElasticRepository) SearchMeows(ctx context.Context, query string, skip 
 		Index("meows").
 		Query(
 			elastic.NewMultiMatchQuery(query, "body").
-				Fuzziness("2"),
+				Fuzziness("3").
+				PrefixLength(1).
+				CutoffFrequency(0.0001),
 		).
 		From(int(skip)).
 		Size(int(take)).

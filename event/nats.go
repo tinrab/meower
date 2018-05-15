@@ -64,7 +64,7 @@ func (e *NatsEventStore) Close() {
 }
 
 func (e *NatsEventStore) PublishMeowCreated(meow schema.Meow) error {
-	m := MeowCreatedMessage{meow.ID, meow.Body}
+	m := MeowCreatedMessage{meow.ID, meow.Body, meow.CreatedAt}
 	data, err := e.writeMessage(&m)
 	if err != nil {
 		return err

@@ -9,6 +9,8 @@ const WS_URL = 'ws://localhost:8082/ws';
 
 const SET_MEOWS = 'SET_MEOWS';
 const CREATE_MEOW = 'CREATE_MEOW';
+const SEARCH_SUCCESS = 'SEARCH_SUCCESS';
+const SEARCH_ERROR = 'SEARCH_ERROR';
 
 const MESSAGE_MEOW_CREATED = 1;
 
@@ -17,6 +19,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   state: {
     meows: [],
+    searchResults: [],
   },
   mutations: {
     SOCKET_ONOPEN(state, event) {},
@@ -36,6 +39,12 @@ const store = new Vuex.Store({
     [CREATE_MEOW](state, meow) {
       state.meows = [meow, ...state.meows];
     },
+    [SEARCH_SUCCESS](state, meows) {
+      state.searchResults = meows;
+    },
+    [SEARCH_ERROR](state) {
+      state.searchResults = [];
+    },
   },
   actions: {
     getMeows({ commit }) {
@@ -44,7 +53,7 @@ const store = new Vuex.Store({
         .then(({ data }) => {
           commit(SET_MEOWS, data);
         })
-        .catch((err) => console.err(err));
+        .catch((err) => console.error(err));
     },
     async createMeow({ commit }, meow) {
       const { data } = await axios.post(`${MEOW_URL}/meows`, null, {
@@ -52,7 +61,21 @@ const store = new Vuex.Store({
           body: meow.body,
         },
       });
-      meow.id = data.id;
+    },
+    async searchMeows({ commit }, query) {
+      if (query.length == 0) {
+        commit(SEARCH_SUCCESS, []);
+        return;
+      }
+      axios
+        .get(`${QUERY_URL}/search`, {
+          params: { query },
+        })
+        .then(({ data }) => commit(SEARCH_SUCCESS, data))
+        .catch((err) => {
+          console.error(err);
+          commit(SEARCH_ERROR);
+        });
     },
   },
 });

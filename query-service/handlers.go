@@ -21,8 +21,9 @@ type CreateMeowResponse struct {
 func onMeowCreated(m event.MeowCreatedMessage) {
 	// Index meow for searching
 	meow := schema.Meow{
-		ID:   m.ID,
-		Body: m.Body,
+		ID:        m.ID,
+		Body:      m.Body,
+		CreatedAt: m.CreatedAt,
 	}
 	if err := search.InsertMeow(context.Background(), meow); err != nil {
 		log.Println(err)
@@ -97,7 +98,7 @@ func searchMeowsHandler(w http.ResponseWriter, r *http.Request) {
 	meows, err := search.SearchMeows(ctx, query, skip, take)
 	if err != nil {
 		log.Println(err)
-		util.ResponseError(w, http.StatusInternalServerError, "Could not search meows")
+		util.ResponseOk(w, []schema.Meow{})
 		return
 	}
 
