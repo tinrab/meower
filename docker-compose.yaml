@@ -8,7 +8,7 @@ services:
       - "postgres"
       - "nats"
     ports:
-      - "8080:8080"
+      - "8080"
     environment:
       POSTGRES_DB: "meower"
       POSTGRES_USER: "meower"
@@ -21,7 +21,7 @@ services:
       - "postgres"
       - "nats"
     ports:
-      - "8081:8080"
+      - "8080"
     environment:
       POSTGRES_DB: "meower"
       POSTGRES_USER: "meower"
@@ -33,7 +33,7 @@ services:
     depends_on:
       - "nats"
     ports:
-      - "8082:8080"
+      - "8080"
     environment:
       NATS_ADDRESS: "nats:4222"
   postgres:
@@ -48,3 +48,7 @@ services:
     restart: "always"
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:6.2.3'
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"

@@ -48,7 +48,7 @@ func main() {
 
 	// Run WebSocket server
 	go hub.run()
-	http.HandleFunc("/ws", hub.handleWebSocket)
+	http.HandleFunc("/pusher", hub.handleWebSocket)
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)

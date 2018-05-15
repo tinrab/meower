@@ -3,9 +3,8 @@ import Vuex from 'vuex';
 import axios from 'axios';
 import VueNativeSock from 'vue-native-websocket';
 
-const MEOW_URL = 'http://localhost:8080';
-const QUERY_URL = 'http://localhost:8081';
-const WS_URL = 'ws://localhost:8082/ws';
+const BACKEND_URL = 'http://localhost:8080';
+const PUSHER_URL = 'ws://localhost:8080/pusher';
 
 const SET_MEOWS = 'SET_MEOWS';
 const CREATE_MEOW = 'CREATE_MEOW';
@@ -49,14 +48,14 @@ const store = new Vuex.Store({
   actions: {
     getMeows({ commit }) {
       axios
-        .get(`${QUERY_URL}/meows`)
+        .get(`${BACKEND_URL}/meows`)
         .then(({ data }) => {
           commit(SET_MEOWS, data);
         })
         .catch((err) => console.error(err));
     },
     async createMeow({ commit }, meow) {
-      const { data } = await axios.post(`${MEOW_URL}/meows`, null, {
+      const { data } = await axios.post(`${BACKEND_URL}/meows`, null, {
         params: {
           body: meow.body,
         },
@@ -68,7 +67,7 @@ const store = new Vuex.Store({
         return;
       }
       axios
-        .get(`${QUERY_URL}/search`, {
+        .get(`${BACKEND_URL}/search`, {
           params: { query },
         })
         .then(({ data }) => commit(SEARCH_SUCCESS, data))
@@ -80,7 +79,7 @@ const store = new Vuex.Store({
   },
 });
 
-Vue.use(VueNativeSock, WS_URL, { store, format: 'json' });
+Vue.use(VueNativeSock, PUSHER_URL, { store, format: 'json' });
 
 store.dispatch('getMeows');
 
