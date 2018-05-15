@@ -26,7 +26,7 @@ func (r *PostgresRepository) Close() error {
 }
 
 func (r *PostgresRepository) InsertMeow(meow schema.Meow) error {
-	_, err := r.db.Exec("INSERT INTO meows(id, body) VALUES($1, $2)", meow.ID, meow.Body)
+	_, err := r.db.Exec("INSERT INTO meows(id, body, created_at) VALUES($1, $2, $3)", meow.ID, meow.Body, meow.CreatedAt)
 	return err
 }
 
@@ -40,7 +40,7 @@ func (r *PostgresRepository) ListMeows(skip uint64, take uint64) ([]schema.Meow,
 	meows := []schema.Meow{}
 	for rows.Next() {
 		meow := schema.Meow{}
-		if err = rows.Scan(&meow.ID, &meow.Body); err == nil {
+		if err = rows.Scan(&meow.ID, &meow.Body, &meow.CreatedAt); err == nil {
 			meows = append(meows, meow)
 		}
 	}

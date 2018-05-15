@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/segmentio/ksuid"
 	"github.com/tinrab/meower/db"
@@ -24,9 +25,16 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create meow
+	createdAt := time.Now().UTC()
+	id, err := ksuid.NewRandomWithTime(createdAt)
+	if err != nil {
+		util.ResponseError(w, http.StatusInternalServerError, "Failed to create meow")
+		return
+	}
 	meow := schema.Meow{
-		ID:   ksuid.New().String(),
-		Body: body,
+		ID:        id.String(),
+		Body:      body,
+		CreatedAt: createdAt,
 	}
 	if err := db.InsertMeow(meow); err != nil {
 		log.Println(err)

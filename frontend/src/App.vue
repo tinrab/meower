@@ -11,7 +11,7 @@
       </div>
 
     </div>
-    <div>
+    <div class="mt-4">
       <Meow v-for="meow in meows" :key="meow.id" :meow="meow" />
     </div>
   </div>
