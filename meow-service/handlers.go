@@ -17,6 +17,8 @@ type CreateMeowResponse struct {
 }
 
 func createMeowHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	// Read parameters
 	body := r.FormValue("body")
 	if len(body) < 1 || len(body) > 140 {
@@ -36,7 +38,7 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 		Body:      body,
 		CreatedAt: createdAt,
 	}
-	if err := db.InsertMeow(meow); err != nil {
+	if err := db.InsertMeow(ctx, meow); err != nil {
 		log.Println(err)
 		util.ResponseError(w, http.StatusInternalServerError, "Failed to create meow")
 		return

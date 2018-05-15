@@ -7,6 +7,7 @@ COPY vendor vendor
 COPY util util
 COPY event event
 COPY db db
+COPY search search
 COPY schema schema
 COPY meow-service meow-service
 COPY query-service query-service

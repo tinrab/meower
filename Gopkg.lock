@@ -41,6 +41,17 @@
   revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mailru/easyjson"
+  packages = [
+    ".",
+    "buffer",
+    "jlexer",
+    "jwriter"
+  ]
+  revision = "8b799c424f57fa123fc63a99d6383bc6e4c02578"
+
+[[projects]]
   name = "github.com/nats-io/go-nats"
   packages = [
     ".",
@@ -57,6 +68,22 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/olivere/elastic"
+  packages = [
+    ".",
+    "config",
+    "uritemplates"
+  ]
+  revision = "4586a6964b5cb45a2dadd67577f83f00b1ec5029"
+  version = "v6.1.18"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/segmentio/ksuid"
   packages = ["."]
   revision = "112f929a3020abfcd06b77c963ec919130796a35"
@@ -71,6 +98,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "899e1d689183cab3a902c4de9305a348a933f8b282952f719ece1ea8a01a8561"
+  inputs-digest = "0e0c4cde39b9c3fdef9c6e45a2635a585d11ec44fc6f85b8477ab0c4e3812a99"
   solver-name = "gps-cdcl"
   solver-version = 1

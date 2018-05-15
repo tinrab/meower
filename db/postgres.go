@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/lib/pq"
@@ -11,8 +12,8 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-func NewPostgres(connection string) (*PostgresRepository, error) {
-	db, err := sql.Open("postgres", connection)
+func NewPostgres(url string) (*PostgresRepository, error) {
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
 	}
@@ -21,16 +22,16 @@ func NewPostgres(connection string) (*PostgresRepository, error) {
 	}, nil
 }
 
-func (r *PostgresRepository) Close() error {
-	return r.db.Close()
+func (r *PostgresRepository) Close() {
+	r.db.Close()
 }
 
-func (r *PostgresRepository) InsertMeow(meow schema.Meow) error {
+func (r *PostgresRepository) InsertMeow(ctx context.Context, meow schema.Meow) error {
 	_, err := r.db.Exec("INSERT INTO meows(id, body, created_at) VALUES($1, $2, $3)", meow.ID, meow.Body, meow.CreatedAt)
 	return err
 }
 
-func (r *PostgresRepository) ListMeows(skip uint64, take uint64) ([]schema.Meow, error) {
+func (r *PostgresRepository) ListMeows(ctx context.Context, skip uint64, take uint64) ([]schema.Meow, error) {
 	rows, err := r.db.Query("SELECT * FROM meows ORDER BY id DESC OFFSET $1 LIMIT $2", skip, take)
 	if err != nil {
 		return nil, err

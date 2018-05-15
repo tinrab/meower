@@ -11,6 +11,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/tinrab/meower/db"
 	"github.com/tinrab/meower/event"
+	"github.com/tinrab/meower/search"
 	"github.com/tinrab/retry"
 )
 
@@ -24,6 +25,8 @@ type Config struct {
 func newRouter() (router *mux.Router) {
 	router = mux.NewRouter()
 	router.HandleFunc("/meows", listMeowsHandler).
+		Methods("GET")
+	router.HandleFunc("/search", searchMeowsHandler).
 		Methods("GET")
 	return
 }
@@ -47,6 +50,18 @@ func main() {
 		return nil
 	})
 	defer db.Close()
+
+	// Connect to ElasticSearch
+	retry.ForeverSleep(2*time.Second, func(_ int) error {
+		es, err := search.NewElastic("http://elasticsearch:9200")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		search.SetRepository(es)
+		return nil
+	})
+	defer search.Close()
 
 	// Connect to Nats
 	retry.ForeverSleep(2*time.Second, func(_ int) error {

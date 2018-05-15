@@ -46,3 +46,5 @@ services:
   nats:
     image: "nats-streaming:0.9.2"
     restart: "always"
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:6.2.3'
