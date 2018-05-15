@@ -31,7 +31,7 @@ func (r *PostgresRepository) InsertMeow(meow schema.Meow) error {
 }
 
 func (r *PostgresRepository) ListMeows(skip uint64, take uint64) ([]schema.Meow, error) {
-	rows, err := r.db.Query("SELECT * FROM meows OFFSET $1 LIMIT $2 ORDER BY id DESC", skip, take)
+	rows, err := r.db.Query("SELECT * FROM meows ORDER BY id DESC OFFSET $1 LIMIT $2", skip, take)
 	if err != nil {
 		return nil, err
 	}

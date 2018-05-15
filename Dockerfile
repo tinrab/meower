@@ -9,6 +9,7 @@ COPY event event
 COPY db db
 COPY schema schema
 COPY meow-service meow-service
+COPY query-service query-service
 COPY pusher-service pusher-service
 
 RUN go install ./...

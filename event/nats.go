@@ -44,6 +44,15 @@ func (e *NatsEventStore) SubscribeMeowCreated() (<-chan MeowCreatedMessage, erro
 	return (<-chan MeowCreatedMessage)(e.meowCreatedChan), nil
 }
 
+func (e *NatsEventStore) OnMeowCreated(f func(MeowCreatedMessage)) (err error) {
+	m := MeowCreatedMessage{}
+	e.meowCreatedSubscription, err = e.nc.Subscribe(m.Key(), func(msg *nats.Msg) {
+		e.readMessage(msg.Data, &m)
+		f(m)
+	})
+	return
+}
+
 func (e *NatsEventStore) Close() {
 	if e.nc != nil {
 		e.nc.Close()

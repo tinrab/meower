@@ -14,13 +14,26 @@ services:
       POSTGRES_USER: "meower"
       POSTGRES_PASSWORD: "123456"
       NATS_ADDRESS: "nats:4222"
+  query:
+    build: .
+    command: "query-service"
+    depends_on:
+      - "postgres"
+      - "nats"
+    ports:
+      - "8081:8080"
+    environment:
+      POSTGRES_DB: "meower"
+      POSTGRES_USER: "meower"
+      POSTGRES_PASSWORD: "123456"
+      NATS_ADDRESS: "nats:4222"
   pusher:
     build: .
     command: "pusher-service"
     depends_on:
       - "nats"
     ports:
-      - "8081:8080"
+      - "8082:8080"
     environment:
       NATS_ADDRESS: "nats:4222"
   postgres:
