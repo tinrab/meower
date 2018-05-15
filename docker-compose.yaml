@@ -5,31 +5,31 @@ services:
     build: .
     command: "meow-service"
     depends_on:
-      - "kafka"
+      - "postgres"
+      - "nats"
     ports:
-      - "8000:3000"
+      - "8080:8080"
+    environment:
+      POSTGRES_DB: "meower"
+      POSTGRES_USER: "meower"
+      POSTGRES_PASSWORD: "123456"
+      NATS_ADDRESS: "nats:4222"
   pusher:
     build: .
     command: "pusher-service"
     depends_on:
-      - "kafka"
+      - "nats"
     ports:
-      - "8001:3000"
-  storage:
-    build: .
-    command: "storage-service"
-    depends_on:
-      - "kafka"
-      - "postgres"
-    ports:
-      - "8002:3000"
+      - "8081:8080"
+    environment:
+      NATS_ADDRESS: "nats:4222"
   postgres:
     build: "./postgres"
     restart: "always"
     environment:
-      POSTGRES_USER: "meower"
       POSTGRES_DB: "meower"
+      POSTGRES_USER: "meower"
       POSTGRES_PASSWORD: "123456"
-  kafka:
-    image: "spotify/kafka"
+  nats:
+    image: "nats-streaming:0.9.2"
     restart: "always"

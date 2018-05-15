@@ -1,16 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/tinrab/retry"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/tinrab/meower/mq"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/tinrab/meower/db"
+	"github.com/tinrab/meower/event"
+	"github.com/tinrab/retry"
 )
+
+type Config struct {
+	PostgresDB       string `envconfig:"POSTGRES_DB"`
+	PostgresUser     string `envconfig:"POSTGRES_USER"`
+	PostgresPassword string `envconfig:"POSTGRES_PASSWORD"`
+	NatsAddress      string `envconfig:"NATS_ADDRESS"`
+}
 
 func newRouter() (router *mux.Router) {
 	router = mux.NewRouter()
@@ -21,23 +30,41 @@ func newRouter() (router *mux.Router) {
 }
 
 func main() {
-	var queue mq.MessageQueue
-	err := retry.DoSleep(10, 2*time.Second, func(_ int) error {
-		kafka := mq.NewKafka([]string{"kafka:9092"})
-		err := kafka.UseProducer()
-		queue = kafka
-		return err
-	})
+	var cfg Config
+	err := envconfig.Process("", &cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	mq.SetMessageQueue(queue)
-	defer queue.Close()
+
+	// Connect to PostgreSQL
+	retry.ForeverSleep(2*time.Second, func(attempt int) error {
+		addr := fmt.Sprintf("postgres://%s:%s@postgres/%s?sslmode=disable", cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDB)
+		repo, err := db.NewPostgres(addr)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		db.SetRepository(repo)
+		return nil
+	})
+	defer db.Close()
+
+	// Connect to Nats
+	retry.ForeverSleep(2*time.Second, func(_ int) error {
+		es, err := event.NewNats(fmt.Sprintf("nats://%s", cfg.NatsAddress))
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		event.SetEventStore(es)
+		return nil
+	})
+	defer event.Close()
 
 	// Run HTTP server
 	router := newRouter()
 	allowAll := handlers.AllowedOrigins([]string{"*"})
-	if err := http.ListenAndServe(":3000", handlers.CORS(allowAll)(router)); err != nil {
+	if err := http.ListenAndServe(":8080", handlers.CORS(allowAll)(router)); err != nil {
 		log.Fatal(err)
 	}
 }

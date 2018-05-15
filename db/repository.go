@@ -14,6 +14,10 @@ func SetRepository(repository Repository) {
 	impl = repository
 }
 
+func Close() {
+	impl.Close()
+}
+
 func InsertMeow(meow schema.Meow) error {
 	return impl.InsertMeow(meow)
 }

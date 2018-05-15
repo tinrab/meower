@@ -1,20 +1,25 @@
 <template>
-  <div>
-    <h1>Meower</h1>
+  <div class="container py-5">
+    <h1 class="mb-3">Meower</h1>
     <div>
-      <input v-model.trim="meowBody">
-      <button @click="createMeow">Meow</button>
+
+      <div class="input-group">
+        <input v-model.trim="meowBody" type="text" class="form-control" placeholder="What's happening?">
+        <div class="input-group-append">
+          <button @click="createMeow" class="btn btn-primary" type="button">Meow</button>
+        </div>
+      </div>
+
     </div>
     <div>
-      <ul>
-        <li v-for="meow in meows" :key="meow.id">{{meow.body}}</li>
-      </ul>
+      <Meow v-for="meow in meows" :key="meow.id" :meow="meow" />
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
+import Meow from '@/components/Meow';
 
 export default {
   data() {
@@ -33,5 +38,14 @@ export default {
       }
     },
   },
+  components: {
+    Meow,
+  },
 };
 </script>
+
+<style lang="scss" scoped>
+.container {
+  max-width: 768px;
+}
+</style>

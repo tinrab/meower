@@ -3,8 +3,8 @@ import Vuex from 'vuex';
 import axios from 'axios';
 import VueNativeSock from 'vue-native-websocket';
 
-const API_URL = 'http://localhost:8000';
-const WS_URL = 'ws://localhost:8001/ws';
+const API_URL = 'http://localhost:8080';
+const WS_URL = 'ws://localhost:8081/ws';
 const CREATE_MEOW = 'CREATE_MEOW';
 
 const MESSAGE_MEOW_CREATED = 1;

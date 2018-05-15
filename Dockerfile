@@ -5,11 +5,11 @@ WORKDIR /go/src/github.com/tinrab/meower
 COPY Gopkg.lock Gopkg.toml ./
 COPY vendor vendor
 COPY util util
-COPY mq mq
+COPY event event
+COPY db db
 COPY schema schema
 COPY meow-service meow-service
 COPY pusher-service pusher-service
-COPY storage-service storage-service
 
 RUN go install ./...
 

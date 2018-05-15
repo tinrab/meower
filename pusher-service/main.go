@@ -1,50 +1,58 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/tinrab/meower/mq"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/tinrab/meower/event"
 	"github.com/tinrab/retry"
 )
 
+type Config struct {
+	NatsAddress string `envconfig:"NATS_ADDRESS"`
+}
+
 func main() {
-	var queue mq.MessageQueue
-	err := retry.DoSleep(10, 2*time.Second, func(_ int) error {
-		kafka := mq.NewKafka([]string{"kafka:9092"})
-		err := kafka.UseConsumer("pusher")
-		queue = kafka
-		return err
+	var cfg Config
+	err := envconfig.Process("", &cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Connect to Nats
+	var ch <-chan event.MeowCreatedMessage
+	retry.ForeverSleep(2*time.Second, func(_ int) error {
+		es, err := event.NewNats(fmt.Sprintf("nats://%s", cfg.NatsAddress))
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		ch, err = es.SubscribeMeowCreated()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		event.SetEventStore(es)
+		return nil
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	mq.SetMessageQueue(queue)
-	defer queue.Close()
+	defer event.Close()
 
-	ch, err := mq.ReadMeow()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// Push messages to clients
 	hub := newHub()
-
-	// Sub to Kafka
 	go func() {
-		for msg := range ch {
-			switch m := msg.(type) {
-			case *mq.MeowCreatedMessage:
-				log.Printf("meow received: '%v'\n", m)
-				hub.broadcast(newMeowCreatedMessage(m.ID, m.Body), nil)
-			}
+		for m := range ch {
+			log.Printf("Meow received: %v\n", m)
+			hub.broadcast(newMeowCreatedMessage(m.ID, m.Body), nil)
 		}
 	}()
 
 	// Run WebSocket server
 	go hub.run()
 	http.HandleFunc("/ws", hub.handleWebSocket)
-	err = http.ListenAndServe(":3000", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
