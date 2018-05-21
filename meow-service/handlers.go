@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -12,15 +13,15 @@ import (
 	"github.com/tinrab/meower/util"
 )
 
-type CreateMeowResponse struct {
-	ID string `json:"id"`
-}
-
 func createMeowHandler(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		ID string `json:"id"`
+	}
+
 	ctx := r.Context()
 
 	// Read parameters
-	body := r.FormValue("body")
+	body := template.HTMLEscapeString(r.FormValue("body"))
 	if len(body) < 1 || len(body) > 140 {
 		util.ResponseError(w, http.StatusBadRequest, "Invalid body")
 		return
@@ -50,5 +51,5 @@ func createMeowHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return new meow
-	util.ResponseOk(w, CreateMeowResponse{ID: meow.ID})
+	util.ResponseOk(w, response{ID: meow.ID})
 }

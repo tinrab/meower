@@ -6,17 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/tinrab/meower/schema"
-	"github.com/tinrab/meower/search"
-
 	"github.com/tinrab/meower/db"
 	"github.com/tinrab/meower/event"
+	"github.com/tinrab/meower/schema"
+	"github.com/tinrab/meower/search"
 	"github.com/tinrab/meower/util"
 )
-
-type CreateMeowResponse struct {
-	ID string `json:"id"`
-}
 
 func onMeowCreated(m event.MeowCreatedMessage) {
 	// Index meow for searching

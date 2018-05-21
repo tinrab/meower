@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/tinrab/meower/db"
@@ -16,10 +15,11 @@ import (
 )
 
 type Config struct {
-	PostgresDB       string `envconfig:"POSTGRES_DB"`
-	PostgresUser     string `envconfig:"POSTGRES_USER"`
-	PostgresPassword string `envconfig:"POSTGRES_PASSWORD"`
-	NatsAddress      string `envconfig:"NATS_ADDRESS"`
+	PostgresDB           string `envconfig:"POSTGRES_DB"`
+	PostgresUser         string `envconfig:"POSTGRES_USER"`
+	PostgresPassword     string `envconfig:"POSTGRES_PASSWORD"`
+	NatsAddress          string `envconfig:"NATS_ADDRESS"`
+	ElasticsearchAddress string `envconfig:"ELASTICSEARCH_ADDRESS"`
 }
 
 func newRouter() (router *mux.Router) {
@@ -53,7 +53,7 @@ func main() {
 
 	// Connect to ElasticSearch
 	retry.ForeverSleep(2*time.Second, func(_ int) error {
-		es, err := search.NewElastic("http://elasticsearch:9200")
+		es, err := search.NewElastic(fmt.Sprintf("http://%s", cfg.ElasticsearchAddress))
 		if err != nil {
 			log.Println(err)
 			return err
@@ -82,8 +82,7 @@ func main() {
 
 	// Run HTTP server
 	router := newRouter()
-	allowAll := handlers.AllowedOrigins([]string{"*"})
-	if err := http.ListenAndServe(":8080", handlers.CORS(allowAll)(router)); err != nil {
+	if err := http.ListenAndServe(":8080", router); err != nil {
 		log.Fatal(err)
 	}
 }

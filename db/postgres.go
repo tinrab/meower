@@ -38,6 +38,7 @@ func (r *PostgresRepository) ListMeows(ctx context.Context, skip uint64, take ui
 	}
 	defer rows.Close()
 
+	// Parse all rows into an array of Meows
 	meows := []schema.Meow{}
 	for rows.Next() {
 		meow := schema.Meow{}

@@ -2,7 +2,7 @@ version: "3.6"
 
 services:
   meow:
-    build: .
+    build: "."
     command: "meow-service"
     depends_on:
       - "postgres"
@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: "123456"
       NATS_ADDRESS: "nats:4222"
   query:
-    build: .
+    build: "."
     command: "query-service"
     depends_on:
       - "postgres"
@@ -27,8 +27,9 @@ services:
       POSTGRES_USER: "meower"
       POSTGRES_PASSWORD: "123456"
       NATS_ADDRESS: "nats:4222"
+      ELASTICSEARCH_ADDRESS: "elasticsearch:9200"
   pusher:
-    build: .
+    build: "."
     command: "pusher-service"
     depends_on:
       - "nats"
@@ -49,6 +50,10 @@ services:
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:6.2.3'
   nginx:
-    build: ./nginx
+    build: "./nginx"
     ports:
       - "8080:80"
+    depends_on:
+      - "meow"
+      - "query"
+      - "pusher"

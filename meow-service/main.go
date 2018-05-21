@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/tinrab/meower/db"
@@ -63,8 +62,7 @@ func main() {
 
 	// Run HTTP server
 	router := newRouter()
-	allowAll := handlers.AllowedOrigins([]string{"*"})
-	if err := http.ListenAndServe(":8080", handlers.CORS(allowAll)(router)); err != nil {
+	if err := http.ListenAndServe(":8080", router); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,9 +1,7 @@
 <template>
   <div class="card">
     <div class="card-body">
-      <p class="card-text">
-        {{body}}
-      </p>
+      <p class="card-text" v-html="body"></p>
       <p class="card-text">
         <small class="text-muted">
           {{time}}

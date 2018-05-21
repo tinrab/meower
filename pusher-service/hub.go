@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,6 +18,7 @@ type Hub struct {
 	nextID     int
 	register   chan *Client
 	unregister chan *Client
+	mutex      *sync.Mutex
 }
 
 func newHub() *Hub {
@@ -25,6 +27,7 @@ func newHub() *Hub {
 		nextID:     0,
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		mutex:      &sync.Mutex{},
 	}
 }
 
@@ -70,6 +73,8 @@ func (hub *Hub) onConnect(client *Client) {
 	log.Println("client connected: ", client.socket.RemoteAddr())
 
 	// Make new client
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
 	client.id = hub.nextID
 	hub.nextID++
 	hub.clients = append(hub.clients, client)
@@ -79,6 +84,8 @@ func (hub *Hub) onDisconnect(client *Client) {
 	log.Println("client disconnected: ", client.socket.RemoteAddr())
 
 	client.close()
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
 
 	// Find index of client
 	i := -1
