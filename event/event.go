@@ -2,16 +2,16 @@ package event
 
 import "github.com/tinrab/meower/schema"
 
-type EventStore interface {
+type Store interface {
 	Close()
 	PublishMeowCreated(meow schema.Meow) error
 	SubscribeMeowCreated() (<-chan MeowCreatedMessage, error)
 	OnMeowCreated(f func(MeowCreatedMessage)) error
 }
 
-var impl EventStore
+var impl Store
 
-func SetEventStore(es EventStore) {
+func SetEventStore(es Store) {
 	impl = es
 }
 

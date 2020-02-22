@@ -1,6 +1,6 @@
 <template>
   <div>
-    <input @keyup="searchMeows" v-model.trim="query" type="text" class="form-control" placeholder="Search...">
+    <input @keyup="searchMeows" v-model.trim="query" class="form-control" placeholder="Search...">
     <div class="mt-4">
       <Meow v-for="meow in meows" :key="meow.id" :meow="meow" />
     </div>

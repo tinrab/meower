@@ -21,8 +21,10 @@ const store = new Vuex.Store({
     searchResults: [],
   },
   mutations: {
-    SOCKET_ONOPEN(state, event) {},
-    SOCKET_ONCLOSE(state, event) {},
+    SOCKET_ONOPEN(state, event) {
+    },
+    SOCKET_ONCLOSE(state, event) {
+    },
     SOCKET_ONERROR(state, event) {
       console.error(event);
     },
@@ -62,7 +64,7 @@ const store = new Vuex.Store({
       });
     },
     async searchMeows({ commit }, query) {
-      if (query.length == 0) {
+      if (query.length === 0) {
         commit(SEARCH_SUCCESS, []);
         return;
       }

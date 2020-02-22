@@ -1,59 +1,63 @@
-version: "3.6"
+version: "3.7"
 
 services:
   meow:
-    build: "."
-    command: "meow-service"
+    build: .
+    command: meow-service
     depends_on:
-      - "postgres"
-      - "nats"
+      - postgres
+      - nats
     ports:
       - "8080"
     environment:
-      POSTGRES_DB: "meower"
-      POSTGRES_USER: "meower"
+      POSTGRES_DB: meower
+      POSTGRES_USER: meower
       POSTGRES_PASSWORD: "123456"
-      NATS_ADDRESS: "nats:4222"
+      NATS_ADDRESS: nats:4222
   query:
-    build: "."
-    command: "query-service"
+    build: .
+    command: query-service
     depends_on:
-      - "postgres"
-      - "nats"
+      - postgres
+      - nats
     ports:
-      - "8080"
+      - 8080
     environment:
-      POSTGRES_DB: "meower"
-      POSTGRES_USER: "meower"
+      POSTGRES_DB: meower
+      POSTGRES_USER: meower
       POSTGRES_PASSWORD: "123456"
-      NATS_ADDRESS: "nats:4222"
-      ELASTICSEARCH_ADDRESS: "elasticsearch:9200"
+      NATS_ADDRESS: nats:4222
+      ELASTICSEARCH_ADDRESS: elasticsearch:9200
   pusher:
-    build: "."
-    command: "pusher-service"
+    build: .
+    command: pusher-service
     depends_on:
-      - "nats"
+      - nats
     ports:
-      - "8080"
+      - 8080
     environment:
-      NATS_ADDRESS: "nats:4222"
+      NATS_ADDRESS: nats:4222
   postgres:
-    build: "./postgres"
-    restart: "always"
+    build: ./postgres
+    restart: always
     environment:
-      POSTGRES_DB: "meower"
-      POSTGRES_USER: "meower"
+      POSTGRES_DB: meower
+      POSTGRES_USER: meower
       POSTGRES_PASSWORD: "123456"
   nats:
-    image: "nats-streaming:0.9.2"
-    restart: "always"
+    image: nats-streaming:0.17.0
+    restart: always
   elasticsearch:
-    image: 'docker.elastic.co/elasticsearch/elasticsearch:6.2.3'
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+    ports:
+    - 9200:9200
+    environment:
+      - discovery.type=single-node
   nginx:
-    build: "./nginx"
+    build: ./nginx
     ports:
       - "8080:80"
     depends_on:
-      - "meow"
-      - "query"
-      - "pusher"
+      - meow
+      - query
+      - pusher

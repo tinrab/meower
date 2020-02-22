@@ -56,6 +56,25 @@ func (hub *Hub) send(message interface{}, client *Client) {
 	client.outbound <- data
 }
 
+func (hub *Hub) disconnect(client *Client) {
+	client.close()
+	hub.mutex.Lock()
+	defer hub.mutex.Unlock()
+
+	// Find index of client
+	i := -1
+	for j, c := range hub.clients {
+		if c.id == client.id {
+			i = j
+			break
+		}
+	}
+	// Delete client from list
+	copy(hub.clients[i:], hub.clients[i+1:])
+	hub.clients[len(hub.clients)-1] = nil
+	hub.clients = hub.clients[:len(hub.clients)-1]
+}
+
 func (hub *Hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	socket, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -82,21 +101,5 @@ func (hub *Hub) onConnect(client *Client) {
 
 func (hub *Hub) onDisconnect(client *Client) {
 	log.Println("client disconnected: ", client.socket.RemoteAddr())
-
-	client.close()
-	hub.mutex.Lock()
-	defer hub.mutex.Unlock()
-
-	// Find index of client
-	i := -1
-	for j, c := range hub.clients {
-		if c.id == client.id {
-			i = j
-			break
-		}
-	}
-	// Delete client from list
-	copy(hub.clients[i:], hub.clients[i+1:])
-	hub.clients[len(hub.clients)-1] = nil
-	hub.clients = hub.clients[:len(hub.clients)-1]
+	hub.disconnect(client)
 }

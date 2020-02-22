@@ -8,9 +8,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/tinrab/retry"
+
 	"github.com/tinrab/meower/db"
 	"github.com/tinrab/meower/event"
-	"github.com/tinrab/retry"
 )
 
 type Config struct {
@@ -23,8 +24,9 @@ type Config struct {
 func newRouter() (router *mux.Router) {
 	router = mux.NewRouter()
 	router.HandleFunc("/meows", createMeowHandler).
-		Methods("POST").
+		Methods(http.MethodPost).
 		Queries("body", "{body}")
+	router.Use(mux.CORSMethodMiddleware(router))
 	return
 }
 

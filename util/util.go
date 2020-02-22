@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -9,7 +10,9 @@ func ResponseOk(w http.ResponseWriter, body interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(body)
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ResponseError(w http.ResponseWriter, code int, message string) {
@@ -19,5 +22,7 @@ func ResponseError(w http.ResponseWriter, code int, message string) {
 	body := map[string]string{
 		"error": message,
 	}
-	json.NewEncoder(w).Encode(body)
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gorilla/websocket"
+import (
+	"log"
+
+	"github.com/gorilla/websocket"
+)
 
 type Client struct {
 	hub      *Hub
@@ -17,20 +21,27 @@ func newClient(hub *Hub, socket *websocket.Conn) *Client {
 	}
 }
 
-func (client *Client) write() {
+func (c *Client) write() {
 	for {
 		select {
-		case data, ok := <-client.outbound:
+		case data, ok := <-c.outbound:
 			if !ok {
-				client.socket.WriteMessage(websocket.CloseMessage, []byte{})
+				if err := c.socket.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+					log.Print(err)
+				}
 				return
 			}
-			client.socket.WriteMessage(websocket.TextMessage, data)
+			if err := c.socket.WriteMessage(websocket.TextMessage, data); err != nil {
+				log.Print(err)
+				c.hub.disconnect(c)
+			}
 		}
 	}
 }
 
-func (client Client) close() {
-	client.socket.Close()
-	close(client.outbound)
+func (c Client) close() {
+	if err := c.socket.Close(); err != nil {
+		log.Fatal(err)
+	}
+	close(c.outbound)
 }

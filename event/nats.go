@@ -3,8 +3,10 @@ package event
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 
-	"github.com/nats-io/go-nats"
+	"github.com/nats-io/nats.go"
+
 	"github.com/tinrab/meower/schema"
 )
 
@@ -22,12 +24,12 @@ func NewNats(url string) (*NatsEventStore, error) {
 	return &NatsEventStore{nc: nc}, nil
 }
 
-func (e *NatsEventStore) SubscribeMeowCreated() (<-chan MeowCreatedMessage, error) {
+func (es *NatsEventStore) SubscribeMeowCreated() (<-chan MeowCreatedMessage, error) {
 	m := MeowCreatedMessage{}
-	e.meowCreatedChan = make(chan MeowCreatedMessage, 64)
+	es.meowCreatedChan = make(chan MeowCreatedMessage, 64)
 	ch := make(chan *nats.Msg, 64)
 	var err error
-	e.meowCreatedSubscription, err = e.nc.ChanSubscribe(m.Key(), ch)
+	es.meowCreatedSubscription, err = es.nc.ChanSubscribe(m.Key(), ch)
 	if err != nil {
 		return nil, err
 	}
@@ -36,43 +38,49 @@ func (e *NatsEventStore) SubscribeMeowCreated() (<-chan MeowCreatedMessage, erro
 		for {
 			select {
 			case msg := <-ch:
-				e.readMessage(msg.Data, &m)
-				e.meowCreatedChan <- m
+				if err := es.readMessage(msg.Data, &m); err != nil {
+					log.Fatal(err)
+				}
+				es.meowCreatedChan <- m
 			}
 		}
 	}()
-	return (<-chan MeowCreatedMessage)(e.meowCreatedChan), nil
+	return (<-chan MeowCreatedMessage)(es.meowCreatedChan), nil
 }
 
-func (e *NatsEventStore) OnMeowCreated(f func(MeowCreatedMessage)) (err error) {
+func (es *NatsEventStore) OnMeowCreated(f func(MeowCreatedMessage)) (err error) {
 	m := MeowCreatedMessage{}
-	e.meowCreatedSubscription, err = e.nc.Subscribe(m.Key(), func(msg *nats.Msg) {
-		e.readMessage(msg.Data, &m)
+	es.meowCreatedSubscription, err = es.nc.Subscribe(m.Key(), func(msg *nats.Msg) {
+		if err := es.readMessage(msg.Data, &m); err != nil {
+			log.Fatal(err)
+		}
 		f(m)
 	})
 	return
 }
 
-func (e *NatsEventStore) Close() {
-	if e.nc != nil {
-		e.nc.Close()
+func (es *NatsEventStore) Close() {
+	if es.nc != nil {
+		es.nc.Close()
 	}
-	if e.meowCreatedSubscription != nil {
-		e.meowCreatedSubscription.Unsubscribe()
+	if es.meowCreatedSubscription != nil {
+		if err := es.meowCreatedSubscription.Unsubscribe(); err != nil {
+			log.Fatal(err)
+		}
 	}
-	close(e.meowCreatedChan)
+	close(es.meowCreatedChan)
 }
 
-func (e *NatsEventStore) PublishMeowCreated(meow schema.Meow) error {
+func (es *NatsEventStore) PublishMeowCreated(meow schema.Meow) error {
 	m := MeowCreatedMessage{meow.ID, meow.Body, meow.CreatedAt}
-	data, err := e.writeMessage(&m)
+	data, err := es.writeMessage(&m)
 	if err != nil {
 		return err
 	}
-	return e.nc.Publish(m.Key(), data)
+	return es.nc.Publish(m.Key(), data)
 }
 
-func (mq *NatsEventStore) writeMessage(m Message) ([]byte, error) {
+func (es *NatsEventStore) writeMessage(m Message) ([]byte, error) {
 	b := bytes.Buffer{}
 	err := gob.NewEncoder(&b).Encode(m)
 	if err != nil {
@@ -81,7 +89,7 @@ func (mq *NatsEventStore) writeMessage(m Message) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (mq *NatsEventStore) readMessage(data []byte, m interface{}) error {
+func (es *NatsEventStore) readMessage(data []byte, m interface{}) error {
 	b := bytes.Buffer{}
 	b.Write(data)
 	return gob.NewDecoder(&b).Decode(m)

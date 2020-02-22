@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/tinrab/meower/event"
 	"github.com/tinrab/retry"
+
+	"github.com/tinrab/meower/event"
 )
 
 type Config struct {

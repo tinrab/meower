@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	_ "github.com/lib/pq"
+
 	"github.com/tinrab/meower/schema"
 )
 
@@ -27,7 +29,9 @@ func NewPostgres(url string) (*PostgresRepository, error) {
 }
 
 func (r *PostgresRepository) Close() {
-	r.db.Close()
+	if err := r.db.Close(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (r *PostgresRepository) InsertMeow(ctx context.Context, meow schema.Meow) error {
@@ -40,10 +44,15 @@ func (r *PostgresRepository) ListMeows(ctx context.Context, skip uint64, take ui
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	// Parse all rows into an array of Meows
-	meows := []schema.Meow{}
+	var meows []schema.Meow
 	for rows.Next() {
 		meow := schema.Meow{}
 		if err = rows.Scan(&meow.ID, &meow.Body, &meow.CreatedAt); err == nil {
